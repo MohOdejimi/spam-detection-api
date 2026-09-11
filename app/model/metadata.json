@@ -1,0 +1,35 @@
+{
+  "algorithm": "MultinomialNB",
+  "vectorizer": "CountVectorizer",
+  "vocabulary_size": 7429,
+  "accuracy": 0.9856424982053122,
+  "classification_report": {
+    "ham": {
+      "precision": 0.9917559769167353,
+      "recall": 0.9917559769167353,
+      "f1-score": 0.9917559769167353,
+      "support": 1213.0
+    },
+    "spam": {
+      "precision": 0.9444444444444444,
+      "recall": 0.9444444444444444,
+      "f1-score": 0.9444444444444444,
+      "support": 180.0
+    },
+    "accuracy": 0.9856424982053122,
+    "macro avg": {
+      "precision": 0.9681002106805898,
+      "recall": 0.9681002106805898,
+      "f1-score": 0.9681002106805898,
+      "support": 1393.0
+    },
+    "weighted avg": {
+      "precision": 0.9856424982053122,
+      "recall": 0.9856424982053122,
+      "f1-score": 0.9856424982053122,
+      "support": 1393.0
+    }
+  },
+  "train_samples": 4179,
+  "test_samples": 1393
+}
