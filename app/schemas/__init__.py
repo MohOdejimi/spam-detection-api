@@ -1,3 +1,3 @@
-from .schema import ReqBody, ModelInfo 
+from .schema import ReqBody, ModelInfo, HealthInfo 
 
-__all__ = ["ReqBody", "ModelInfo"]
+__all__ = ["ReqBody", "ModelInfo", "HealthInfo"]

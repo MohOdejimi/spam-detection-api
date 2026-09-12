@@ -13,3 +13,8 @@ class ModelInfo(BaseModel):
   classification_report: Any
   train_samples: int
   test_samples: int
+
+class HealthInfo(BaseModel):
+    status: str
+    model_loaded: bool
+    model_algorithm: str 
