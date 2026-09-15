@@ -13,30 +13,32 @@ HAM_EXAMPLE = (
     "la e buffet... Cine there got amore wat..."
 )
 
+
 class TestPredictRoute:
     def test_spam_message(self):
-        response = client.post('/predict', json = {"message": SPAM_EXAMPLE})
-        assert response.status_code == 200 
+        response = client.post("/predict", json={"message": SPAM_EXAMPLE})
+        assert response.status_code == 200
 
         body = response.json()
-        assert body['prediction'] == 'spam'
-        assert 0 <= body['confidence'] <= 100 
+        assert body["prediction"] == "spam"
+        assert 0 <= body["confidence"] <= 100
 
     def test_ham_message(self):
-        response = client.post('/predict', json={"message": HAM_EXAMPLE})
-        assert response.status_code == 200 
+        response = client.post("/predict", json={"message": HAM_EXAMPLE})
+        assert response.status_code == 200
 
-        body =  response.json()
-        assert body['prediction'] == 'ham'
-        assert  0 <= body['confidence'] <= 100 
+        body = response.json()
+        assert body["prediction"] == "ham"
+        assert 0 <= body["confidence"] <= 100
 
     def test_predict_rejects_missing_field(self):
-        response = client.post('/predict', json={}) 
+        response = client.post("/predict", json={})
         assert response.status_code == 422
 
     def test_predict_rejects_empty_message(self):
-        response = client.post('/predict', json={'message': ""})
-        assert response.status_code == 422 
+        response = client.post("/predict", json={"message": ""})
+        assert response.status_code == 422
+
 
 class TestModelInfoRoute:
     def test_model_info_returns_expected_shape(self):

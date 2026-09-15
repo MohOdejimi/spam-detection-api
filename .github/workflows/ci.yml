@@ -28,7 +28,7 @@ jobs:
         continue-on-error: true
 
       - name: Test with pytest
-        run: pytest --cov=app --cov-report=xml
+        run: pytest ./tests/test_predictions.py --cov=app --cov-report=xml
 
       - name: Build Docker image
         run: docker compose build

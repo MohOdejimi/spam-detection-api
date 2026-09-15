@@ -5,11 +5,11 @@ import joblib
 import nltk
 import pandas as pd
 from nltk.corpus import stopwords
-from nltk.tokenize import word_tokenize
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics import accuracy_score, classification_report
 from sklearn.model_selection import train_test_split
 from sklearn.naive_bayes import MultinomialNB
+
 from app.services import preprocess_message
 
 nltk.download("punkt", quiet=True)

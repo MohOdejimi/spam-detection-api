@@ -1,4 +1,4 @@
+from .model import metadata, model, predict_message, vectorizer
 from .preprocessing import preprocess_message
-from .model import model, vectorizer, metadata, predict_message
 
-__all__ = ["preprocess_message", "predict_message", "model", "vectorizer", "metadata"]
+__all__ = ["metadata", "model", "predict_message", "preprocess_message", "vectorizer"]
