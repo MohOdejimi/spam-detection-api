@@ -1,7 +1,7 @@
 on: [push]
 
 jobs:
-  build:
+  build_and_publish_image:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -40,9 +40,14 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-        
-      - name: Tag Docker Image 
-        run: docker tag spam-detection-api-api:latest ghcr.io/${{ github.repository_owner }}/spam-detection-api:${{ github.sha }}
 
-      - name: Push Docker Image 
-        run: docker push ghcr.io/${{ github.repository_owner }}/spam-detection-api:${{ github.sha }}
+      - name: Set lowercase repository owner
+        run: echo "OWNER_LC=${OWNER,,}" >> "$GITHUB_ENV"
+        env:
+          OWNER: ${{ github.repository_owner }}
+
+      - name: Tag Docker Image
+        run: docker tag spam-detection-api-api:latest ghcr.io/${{ env.OWNER_LC }}/spam-detection-api:${{ github.sha }}
+
+      - name: Push Docker Image
+        run: docker push ghcr.io/${{ env.OWNER_LC }}/spam-detection-api:${{ github.sha }}
