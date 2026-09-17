@@ -84,8 +84,7 @@ jobs:
           chmod 600 vm_key.pem
       - name: Test SSH Connection 
         run: |
-          ssh \ 
-            -i vm_key.pem \
+          ssh -i vm_key.pem \
             -o StrictHostKeyChecking=no \
-            ${{ secrets.AZURE_VM_USERNAME}}@${{ secrets.AZURE_VM_IP }}
-            "echo 'SSH Connection Successfull"
+            "${{ secrets.AZURE_VM_USERNAME }}@${{ secrets.AZURE_VM_IP }}" \
+            "echo 'SSH Connection Successful'"
