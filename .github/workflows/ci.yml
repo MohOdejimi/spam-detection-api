@@ -87,5 +87,5 @@ jobs:
           ssh \ 
             -i vm_key.pem \
             -o StrictHostKeyChecking=no \
-            ${{ secrets.AZURE_VM_USERNAME}}@${{ secrets.AZURE_VM_HOST }}
+            ${{ secrets.AZURE_VM_USERNAME}}@${{ secrets.AZURE_VM_IP }}
             "echo 'SSH Connection Successfull"
