@@ -82,21 +82,27 @@ jobs:
         run: |
           echo "${{ secrets.AZURE_VM_SSH_KEY }}" > vm_key.pem
           chmod 600 vm_key.pem
+
       - name: Test SSH Connection 
         run: |
           ssh -i vm_key.pem \
             -o StrictHostKeyChecking=no \
             "${{ secrets.AZURE_VM_USERNAME }}@${{ secrets.AZURE_VM_IP }}" \
             "echo 'SSH Connection Successful'"
-      - name: Verify Docker on VM
-        run: |
-          docker version && docker ps
-      - name: Pull and Deploy latest Image 
+
+      - name: Pull and Deploy Image 
         run: |
           OWNER_LC="${{ github.repository_owner }}"
           OWNER_LC="${OWNER_LC,,}"
-          docker pull ghcr.io/${OWNER_LC}/spam-detection-api:${{ github.sha }}
-          docker stop spam-detection-api 
-          docker rm spam-detection-api 
-          docker run -d -p8000:8000 --name spam-detection-api ghcr.io/${OWNER_LC}/spam-detection-api:${{ github.sha }}
-          docker ps
+
+          ssh -i vm_key.pem \
+            "${{ secrets.AZURE_VM_USERNAME }}@${{ secrets.AZURE_VM_IP }}" \
+            "
+   
+             docker pull ghcr.io/${OWNER_LC}/spam-detection-api:${{ github.sha }}
+              if docker ps -a --format '{{.Names}}' | grep -q '^spam-detection-api$'; then
+                  docker stop spam-detection-api 
+                docker rm spam-detection-api
+              fi
+              docker run --restart unless-stopped -d -p8000:8000 --name spam-detection-api  ghcr.io/${OWNER_LC}/spam-detection-api:${{ github.sha }}
+            "  
