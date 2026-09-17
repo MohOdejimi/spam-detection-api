@@ -73,3 +73,19 @@ jobs:
           OWNER_LC="${{ github.repository_owner }}"
           OWNER_LC="${OWNER_LC,,}"
           docker push ghcr.io/${OWNER_LC}/spam-detection-api:${{ github.sha }}
+  deploy:
+    needs: publish
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps: 
+      - name: Set up SSH KEY 
+        run: |
+          echo "${{ secrets.AZURE_VM_SSH_KEY }}" > vm_key.pem
+          chmod 600 vm_key.pem
+      - name: Test SSH Connection 
+        run: |
+          ssh \ 
+            -i vm_key.pem \
+            -o StrictHostKeyChecking=no \
+            ${{ secrets.AZURE_VM_USERNAME}}@${{ secrets.AZURE_VM_HOST }}
+            "echo 'SSH Connection Successfull"
