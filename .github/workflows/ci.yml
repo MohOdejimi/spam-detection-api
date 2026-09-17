@@ -91,3 +91,12 @@ jobs:
       - name: Verify Docker on VM
         run: |
           docker version && docker ps
+      - name: Pull and Deploy latest Image 
+        run: |
+          OWNER_LC="${{ github.repository_owner }}"
+          OWNER_LC="${OWNER_LC,,}"
+          docker pull ghcr.io/${OWNER_LC}/spam-detection-api:${{ github.sha }}
+          docker stop spam-detection-api 
+          docker rm spam-detection-api 
+          docker run -d -p8000:8000 --name spam-detection-api ghcr.io/${OWNER_LC}/spam-detection-api:${{ github.sha }}
+          docker ps
