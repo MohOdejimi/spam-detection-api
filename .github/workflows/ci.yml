@@ -1,18 +1,24 @@
-on: [push]
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
 
 jobs:
-  build_and_publish_image:
+  test:
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
+
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: "3.12"
 
       - name: Install dependencies
         run: |
@@ -24,33 +30,46 @@ jobs:
         run: python -m nltk.downloader punkt punkt_tab stopwords
 
       - name: Lint with Ruff
-        run: ruff check --output-format=github
+        run: ruff check .
 
       - name: Check formatting with Ruff
-        run: ruff format --diff
-        continue-on-error: true
+        run: ruff format --check .
 
       - name: Test with pytest
-        run: pytest ./tests/test_predictions.py --cov=app --cov-report=xml
+        run: pytest --cov=app --cov-report=xml
 
       - name: Build Docker image
         run: docker compose build
 
+  publish:
+    if: github.ref == 'refs/heads/main'
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v4
+
       - name: Log in to GHCR
-        if: github.ref == 'refs/heads/main'
-        uses: docker/login-action@v3 
+        uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Set lowercase repository owner
-        run: echo "OWNER_LC=${OWNER,,}" >> "$GITHUB_ENV"
-        env:
-          OWNER: ${{ github.repository_owner }}
+      - name: Build image
+        run: docker compose build
 
-      - name: Tag Docker Image
-        run: docker tag spam-detection-api-api:latest ghcr.io/${{ env.OWNER_LC }}/spam-detection-api:${{ github.sha }}
+      - name: Tag Docker image
+        run: |
+          OWNER_LC="${{ github.repository_owner }}"
+          OWNER_LC="${OWNER_LC,,}"
+          docker tag spam-detection-api-api:latest ghcr.io/${OWNER_LC}/spam-detection-api:${{ github.sha }}
 
-      - name: Push Docker Image
-        run: docker push ghcr.io/${{ env.OWNER_LC }}/spam-detection-api:${{ github.sha }}
+      - name: Push Docker image
+        run: |
+          OWNER_LC="${{ github.repository_owner }}"
+          OWNER_LC="${OWNER_LC,,}"
+          docker push ghcr.io/${OWNER_LC}/spam-detection-api:${{ github.sha }}
