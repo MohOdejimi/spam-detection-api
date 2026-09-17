@@ -88,3 +88,6 @@ jobs:
             -o StrictHostKeyChecking=no \
             "${{ secrets.AZURE_VM_USERNAME }}@${{ secrets.AZURE_VM_IP }}" \
             "echo 'SSH Connection Successful'"
+      - name: Verify Docker on VM
+        run: |
+          docker version && docker ps
