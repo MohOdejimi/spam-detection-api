@@ -82,13 +82,12 @@ jobs:
 
       - name: Create SSH Known Hosts 
         run: |
-          echo "${{ secrets.AZURE_VM_KNOWN_HOSTS }}" > known_hosts
+          echo "${{ secrets.AZURE_VM_HOSTS }}" > known_hosts
           chmod 600 known_hosts
 
       - name: Check known hosts
         run: |
           cat known_hosts
-
 
       - name: Test SSH Connection 
         run: |
