@@ -88,7 +88,7 @@ jobs:
       - name: Check known hosts
         run: |
           cat known_hosts
-          ssh-keygen -lf known_hosts -E sha256
+
 
       - name: Test SSH Connection 
         run: |
