@@ -102,7 +102,15 @@ jobs:
              docker pull ghcr.io/${OWNER_LC}/spam-detection-api:${{ github.sha }}
               if docker ps -a --format '{{.Names}}' | grep -q '^spam-detection-api$'; then
                   docker stop spam-detection-api 
-                docker rm spam-detection-api
+                  docker rm spam-detection-api
               fi
-              docker run --restart unless-stopped -d -p8000:8000 --name spam-detection-api  ghcr.io/${OWNER_LC}/spam-detection-api:${{ github.sha }}
+              docker run --restart unless-stopped \
+              -d -p8000:8000 \
+              --name spam-detection-api  \
+              --health-cmd='curl -f http://localhost/ || exit 1' \
+              --health-inteval=10s \
+              --health-retries=3
+              ghcr.io/${OWNER_LC}/spam-detection-api:${{ github.sha }}
+              docker ps 
+              docker inpect --format='{{json .State.Health}}' spam-detection-api
             "  
