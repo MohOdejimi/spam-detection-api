@@ -97,70 +97,72 @@ jobs:
             "echo 'SSH Connection Successful'"
 
       - name: Pull and Deploy Image
+        env: 
+          GITHUB_SHA: ${{ github.sha }}
         run: |
           OWNER_LC="${{ github.repository_owner }}"
           OWNER_LC="${OWNER_LC,,}"
 
           ssh -i vm_key.pem \
             -o UserKnownHostsFile=known_hosts \
-            "${{ secrets.AZURE_VM_USERNAME }}@${{ secrets.AZURE_VM_IP }}" \
+            "${{ secrets.AZURE_VM_USERNAME }}@${{ secrets.AZURE_VM_IP }}" << REMOTE_SCRIPT
+ 
+          set -e
 
-            "
-              set -e
+          IMAGE="ghcr.io/$OWNER_LC/spam-detection-api:$GITHUB_SHA"
+          REPOSITORY="ghcr.io/$OWNER_LC/spam-detection-ap"
 
-              IMAGE='ghcr.io/${OWNER_LC}/spam-detection-api:${{ github.sha }}'
-              REPOSITORY='ghcr.io/${OWNER_LC}/spam-detection-api'
+          echo 'Pulling new image...'
+          docker pull $IMAGE
 
-              echo 'Pulling new image...'
-              docker pull \$IMAGE
+          if docker ps -a --format '{{.Names}}' | grep -q '^spam-detection-api$'; then
+            echo 'Stopping existing container...'
+            docker stop spam-detection-api
+            docker rm spam-detection-api
+          fi
 
-              if docker ps -a --format '{{.Names}}' | grep -q '^spam-detection-api$'; then
-                echo 'Stopping existing container...'
-                docker stop spam-detection-api
-                docker rm spam-detection-api
+          echo 'Starting new container...'
+          docker run \
+            --restart unless-stopped \
+            -d \
+            -p 8000:8000 \
+            --name spam-detection-api \
+            --health-cmd='python -c "import urllib.request; urllib.request.urlopen(\"http://localhost:8000/health\")"' \
+            --health-interval=7s \
+            --health-retries=3 \
+            --health-start-period=7s \
+            $IMAGE
+
+          echo 'Waiting for health check...'
+          sleep 15
+
+          HEALTH_STATUS=\$(docker inspect \
+            --format='{{.State.Health.Status}}' \
+            spam-detection-api)
+
+          echo "Health status: $HEALTH_STATUS"
+
+          if [ "$HEALTH_STATUS" != 'healthy' ]; then
+            echo 'Deployment failed health check.'
+            docker logs spam-detection-api
+            exit 1
+          fi
+
+          echo 'Container is healthy.'
+
+          CURRENT_IMAGE_ID=\$(docker inspect \
+            --format='{{.Image}}' \
+            spam-detection-api)
+
+          docker images \
+            "$REPOSITORY" \
+            --format '{{.ID}} {{.Repository}}:{{.Tag}}' |
+            while read IMAGE_ID IMAGE_REF; do
+              if [ "$IMAGE_ID" != "$CURRENT_IMAGE_ID" ]; then
+                docker rmi "\$IMAGE_REF" || true
               fi
+            done
 
-              echo 'Starting new container...'
-              docker run \
-                --restart unless-stopped \
-                -d \
-                -p 8000:8000 \
-                --name spam-detection-api \
-                --health-cmd='python -c \"import urllib.request; urllib.request.urlopen(\\\"http://localhost:8000/health\\\")\"' \
-                --health-interval=10s \
-                --health-retries=3 \
-                --health-start-period=10s \
-                \$IMAGE
-
-              echo 'Waiting for health check...'
-              sleep 7
-
-              HEALTH_STATUS=\$(docker inspect \
-                --format='{{.State.Health.Status}}' \
-                spam-detection-api)
-
-              echo \"Health status: \$HEALTH_STATUS\"
-
-              if [ \"\$HEALTH_STATUS\" != 'healthy' ]; then
-                echo 'Deployment failed health check.'
-                docker logs spam-detection-api
-                exit 1
-              fi
-
-              echo 'Container is healthy.'
-
-              CURRENT_IMAGE_ID=\$(docker inspect \
-                --format='{{.Image}}' \
-                spam-detection-api)
-
-              docker images \
-                \"\$REPOSITORY\" \
-                --format '{{.ID}} {{.Repository}}:{{.Tag}}' |
-                while read IMAGE_ID IMAGE_REF; do
-                  if [ \"\$IMAGE_ID\" != \"\$CURRENT_IMAGE_ID\" ]; then
-                    docker rmi \"\$IMAGE_REF\" || true
-                  fi
-                done
-
-              echo 'Targeted image cleanup completed.'
-            "
+          echo 'Targeted image cleanup completed.'
+          REMOTE_SCRIPT
+        
