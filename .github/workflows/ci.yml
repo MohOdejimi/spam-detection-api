@@ -103,17 +103,21 @@ jobs:
           OWNER_LC="${{ github.repository_owner }}"
           OWNER_LC="${OWNER_LC,,}"
 
+          IMAGE="ghcr.io/$OWNER_LC/spam-detection-api:$GITHUB_SHA"
+          REPOSITORY="ghcr.io/$OWNER_LC/spam-detection-api"
+
           ssh -i vm_key.pem \
             -o UserKnownHostsFile=known_hosts \
-            "${{ secrets.AZURE_VM_USERNAME }}@${{ secrets.AZURE_VM_IP }}" << REMOTE_SCRIPT
+            "${{ secrets.AZURE_VM_USERNAME }}@${{ secrets.AZURE_VM_IP }}" \
+            "bash -s -- '$IMAGE' '$REPOSITORY'" << 'REMOTE_SCRIPT'
  
           set -e
 
-          IMAGE="ghcr.io/$OWNER_LC/spam-detection-api:$GITHUB_SHA"
-          REPOSITORY="ghcr.io/$OWNER_LC/spam-detection-ap"
+          IMAGE="$1"
+          REPOSITORY="$2"
 
           echo 'Pulling new image...'
-          docker pull $IMAGE
+          docker pull "$IMAGE"
 
           if docker ps -a --format '{{.Names}}' | grep -q '^spam-detection-api$'; then
             echo 'Stopping existing container...'
@@ -131,12 +135,12 @@ jobs:
             --health-interval=7s \
             --health-retries=3 \
             --health-start-period=7s \
-            $IMAGE
+            "$IMAGE"
 
           echo 'Waiting for health check...'
           sleep 15
 
-          HEALTH_STATUS=\$(docker inspect \
+          HEALTH_STATUS=$(docker inspect \
             --format='{{.State.Health.Status}}' \
             spam-detection-api)
 
@@ -150,7 +154,7 @@ jobs:
 
           echo 'Container is healthy.'
 
-          CURRENT_IMAGE_ID=\$(docker inspect \
+          CURRENT_IMAGE_ID=$(docker inspect \
             --format='{{.Image}}' \
             spam-detection-api)
 
@@ -159,7 +163,7 @@ jobs:
             --format '{{.ID}} {{.Repository}}:{{.Tag}}' |
             while read IMAGE_ID IMAGE_REF; do
               if [ "$IMAGE_ID" != "$CURRENT_IMAGE_ID" ]; then
-                docker rmi "\$IMAGE_REF" || true
+                docker rmi "$IMAGE_REF" || true
               fi
             done
 
