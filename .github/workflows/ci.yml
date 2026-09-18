@@ -85,6 +85,10 @@ jobs:
           echo "${{ secrets.AZURE_VM_KNOWN_HOSTS }}" > known_hosts
           chmod 600 known_hosts
 
+      - name: Display known_hosts file
+        run: |
+          cat known_hosts
+
       - name: Test SSH Connection 
         run: |
           ssh -i vm_key.pem \
