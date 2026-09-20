@@ -16,8 +16,9 @@ nltk.download("punkt", quiet=True)
 nltk.download("punkt_tab", quiet=True)  # required by newer NLTK versions
 nltk.download("stopwords", quiet=True)
 
-DATA_PATH = Path("spam.csv")
-MODEL_DIR = Path("model")
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+DATA_PATH = PROJECT_ROOT / "training" / "spam.csv"
+MODEL_DIR = PROJECT_ROOT / "model"
 MODEL_DIR.mkdir(exist_ok=True)
 
 STOPWORDS = set(stopwords.words("english"))
