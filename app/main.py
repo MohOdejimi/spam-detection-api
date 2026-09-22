@@ -3,18 +3,15 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.routes import router
 
-origins = [
-    "http://localhost:3000"
-]
-
+origins = ["http://localhost:3000"]
 
 
 app = FastAPI()
 app.add_middleware(
-    CORSMiddleware, 
-    allow_origins = origins,
-    allow_credentials = False,
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=False,
     allow_methods=["*"],
-    allow_headers=["*"]
+    allow_headers=["*"],
 )
 app.include_router(router)
